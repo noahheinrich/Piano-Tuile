@@ -1,0 +1,410 @@
+import ddf.minim.*;
+import java.util.HashSet;
+
+Minim minim;
+AudioPlayer player1;
+
+ArrayList<Tile> tiles = new ArrayList<Tile>();
+float tileWidth;
+float tileHeight;
+int speed = 15;
+int rodHeight = 750;
+int combo = 0;
+
+PFont kaviron;
+PImage backgroundImg;
+
+boolean isTilePressed = false;
+
+boolean isDuoMode = false;
+
+int score = 0;
+
+final int MODE = 0;
+final int TITLE = 1;
+final int GAME = 2;
+final int END = 3;
+final int SCORE = 4;
+
+String[] lignes;
+
+int gameState = MODE;
+
+int maxHealth;
+int health;
+
+float songStartTime;
+int sequenceIndex = 0;
+float delayAfterLastTile;
+float endSequenceTime = 0;
+
+String lastScoreMessage = "";
+ScoreDisplay[] scoreDisplays = new ScoreDisplay[4];
+SequenceButton[] sequenceButtons = new SequenceButton[3];
+PlayerButton[] playerButtons = new PlayerButton[2];
+
+void setup() {
+  fullScreen();
+  tileWidth = width / 4.0; // Divise l'écran en 4 colonnes.
+  maxHealth = 6;
+  health = maxHealth;
+  
+  for (int i = 0; i < scoreDisplays.length; i++) {
+    scoreDisplays[i] = new ScoreDisplay((i + 0.5) * tileWidth, rodHeight - 50);
+  }
+  lignes = loadStrings("score.txt");
+
+  // Affiche chaque ligne du fichier texte dans la console
+ 
+  minim = new Minim(this);
+  player1 = minim.loadFile("rap.mp3");
+  if (player1 != null){
+    player1.play();
+  }
+
+  PrintWriter writer = createWriter("score.txt");
+  writer.println("Donnée 1");
+  writer.println("Donnée 2");
+  writer.flush(); // Assure que toutes les données sont écrites
+  writer.close(); // Ferme le fichier
+   for (String ligne : lignes) {
+    println(ligne);
+  }
+
+  backgroundImg = loadImage("Ecran_Fin.jpg");
+  kaviron = loadFont("KavironRegular-48.vlw");
+  textFont(kaviron,48);
+}
+
+void setupSequenceClas() {
+  delayAfterLastTile = 5.0;
+  // Exemple : Générer des tuiles dans la 1ère et 3ème colonnes à 1.0s, puis dans la 2ème et 4ème à 2.5s
+  sequence.add(new TilePattern(1.0, new int[]{0, 2}));
+  sequence.add(new TilePattern(2.5, new int[]{1, 3}));
+  sequence.add(new TilePattern(3.0, new int[]{0})); 
+  sequence.add(new TilePattern(3.5, new int[]{1})); 
+  sequence.add(new TilePattern(4.0, new int[]{2})); 
+  sequence.add(new TilePattern(4.5, new int[]{3})); 
+  sequence.add(new TilePattern(5.0, new int[]{0, 1})); 
+  sequence.add(new TilePattern(5.5, new int[]{2, 3})); 
+  sequence.add(new TilePattern(6.0, new int[]{1, 2})); 
+  sequence.add(new TilePattern(6.5, new int[]{0, 3})); 
+  sequence.add(new TilePattern(7.0, new int[]{0, 2})); 
+  sequence.add(new TilePattern(7.5, new int[]{1, 3})); 
+  sequence.add(new TilePattern(8.0, new int[]{0, 1, 2})); 
+  sequence.add(new TilePattern(8.5, new int[]{1, 2, 3})); 
+  sequence.add(new TilePattern(9.0, new int[]{0, 2, 3})); 
+  sequence.add(new TilePattern(9.5, new int[]{0, 1, 3})); 
+  sequence.add(new TilePattern(10.0, new int[]{0, 1, 2, 3})); 
+  sequence.add(new TilePattern(11.0, new int[]{0, 1})); 
+  sequence.add(new TilePattern(11.5, new int[]{2, 3})); 
+  sequence.add(new TilePattern(12.0, new int[]{1, 2})); 
+  sequence.add(new TilePattern(12.5, new int[]{0, 3})); 
+  sequence.add(new TilePattern(13.0, new int[]{0, 2})); 
+  sequence.add(new TilePattern(13.5, new int[]{1, 3})); 
+  sequence.add(new TilePattern(14.0, new int[]{0, 1, 2})); 
+  sequence.add(new TilePattern(14.5, new int[]{1, 2, 3})); 
+  sequence.add(new TilePattern(15.0, new int[]{0, 2, 3})); 
+  sequence.add(new TilePattern(15.5, new int[]{0, 1, 3})); 
+  sequence.add(new TilePattern(16.0, new int[]{0, 1, 2, 3})); 
+  sequence.add(new TilePattern(16.5, new int[]{1, 3})); 
+  sequence.add(new TilePattern(17.0, new int[]{0, 1, 2})); 
+  sequence.add(new TilePattern(17.5, new int[]{1, 2, 3})); 
+  sequence.add(new TilePattern(18.0, new int[]{0, 2, 3})); 
+  sequence.add(new TilePattern(18.5, new int[]{0, 1, 3})); 
+  sequence.add(new TilePattern(19.0, new int[]{0, 1, 2, 3})); 
+  sequence.add(new TilePattern(19.5, new int[]{0, 1})); 
+  sequence.add(new TilePattern(20.0, new int[]{2, 3})); 
+  sequence.add(new TilePattern(20.5, new int[]{1, 2})); 
+  sequence.add(new TilePattern(21.0, new int[]{0, 3})); 
+  sequence.add(new TilePattern(21.5, new int[]{0, 2})); 
+  sequence.add(new TilePattern(22.0, new int[]{1, 3})); 
+
+  // Ajoutez plus selon le rythme et la structure que vous souhaitez
+}
+
+void setupSequenceRock() {
+  delayAfterLastTile = 5.0;
+  sequence.add(new TilePattern(1.0, new int[]{0, 2}));
+  sequence.add(new TilePattern(2.5, new int[]{1, 3}));
+  sequence.add(new TilePattern(3.0, new int[]{0})); 
+  sequence.add(new TilePattern(3.5, new int[]{1})); 
+  sequence.add(new TilePattern(4.0, new int[]{2})); 
+  sequence.add(new TilePattern(4.5, new int[]{3})); 
+  sequence.add(new TilePattern(5.0, new int[]{0, 1})); 
+  sequence.add(new TilePattern(5.5, new int[]{2, 3})); 
+}
+
+void setupSequenceRap() {
+  delayAfterLastTile = 5.0;
+  sequence.add(new TilePattern(1.0, new int[]{0, 2}));
+  sequence.add(new TilePattern(2.5, new int[]{1, 3}));
+  sequence.add(new TilePattern(3.0, new int[]{0})); 
+  sequence.add(new TilePattern(3.5, new int[]{1})); 
+  sequence.add(new TilePattern(4.0, new int[]{2})); 
+  sequence.add(new TilePattern(4.5, new int[]{3})); 
+  sequence.add(new TilePattern(5.0, new int[]{0, 1})); 
+  sequence.add(new TilePattern(5.5, new int[]{2, 3})); 
+  sequence.add(new TilePattern(6.0, new int[]{1, 2})); 
+  sequence.add(new TilePattern(6.5, new int[]{0, 3})); 
+  sequence.add(new TilePattern(7.0, new int[]{0, 2})); 
+  sequence.add(new TilePattern(7.5, new int[]{1, 3})); 
+  sequence.add(new TilePattern(8.0, new int[]{0, 1, 2})); 
+  sequence.add(new TilePattern(8.5, new int[]{1, 2, 3})); 
+  sequence.add(new TilePattern(9.0, new int[]{0, 2, 3})); 
+  sequence.add(new TilePattern(9.5, new int[]{0, 1, 3})); 
+  sequence.add(new TilePattern(10.0, new int[]{0, 1, 2, 3})); 
+}
+
+void draw() {
+  switch(gameState) {
+    case MODE:
+      displayModeScreen();
+      break;
+    case TITLE:
+      displayTitleScreen(); // On utilise la fonction pour afficher l'écran d'accueil
+      break;
+    case GAME:
+      displayGameScreen();
+      break;
+    case END:
+      displayEndScreen();
+      break;
+    case SCORE:
+      displayScoreScreen();
+      break;
+  }  
+}
+
+void displayModeScreen() {
+  playerButtons[0] = new PlayerButton("1 Player", 100, 400, 100, 50);
+  playerButtons[1] = new PlayerButton("2 Players", 100, 500, 100, 50);
+  background(0);
+  image(backgroundImg, 0, 0);
+  displayPlayerButtons();
+  
+  for (PlayerButton button : playerButtons) {
+    if (button.isClicked()) {
+      // Changer la séquence en fonction du bouton cliqué
+      if (button.title.equals("1 Player")) {
+        gameState = TITLE;
+      } else if (button.title.equals("2 Players")) {
+        isDuoMode = true;
+        gameState = TITLE;
+      }
+    }
+  }
+}
+
+void displayTitleScreen() {
+  songStartTime = millis();
+  sequenceButtons[0] = new SequenceButton("Clas", 100, 100, 100, 50);
+  sequenceButtons[1] = new SequenceButton("Rock", 100, 200, 100, 50);
+  sequenceButtons[2] = new SequenceButton("Rap", 100, 300, 100, 50);
+  background(0);
+  image(backgroundImg, 0, 0);
+  displaySequenceButtons();
+  
+  for (SequenceButton button : sequenceButtons) {
+    if (button.isClicked()) {
+      // Changer la séquence en fonction du bouton cliqué
+      if (button.title.equals("Clas")) {
+        setupSequenceClas();
+        gameState = GAME;
+      } else if (button.title.equals("Rock")) {
+        setupSequenceRock();
+        gameState = GAME;
+      } else if (button.title.equals("Rap")) {
+        setupSequenceRap();
+        gameState = GAME;
+      }
+    }
+  }
+}
+
+void displayGameScreen() {
+  float currentTime = (millis() - songStartTime) / 1000.0; // Temps actuel en secondes
+  
+  
+  // Générer les tuiles selon la séquence
+  while (sequenceIndex < sequence.size() && currentTime >= sequence.get(sequenceIndex).time) {
+    for (int column : sequence.get(sequenceIndex).columns) {
+      spawnTile(column);
+    }
+    sequenceIndex++;
+  }
+  
+  background(255);
+  image(backgroundImg, 0, 0);
+  drawHUD();
+  moveTiles();
+  drawTiles();
+  
+  for (ScoreDisplay sd : scoreDisplays) {
+    sd.draw();
+  }
+  
+  if (sequenceIndex >= sequence.size() && tiles.isEmpty() && endSequenceTime == 0) {
+    endSequenceTime = millis(); // Enregistrez le moment où la dernière tuile a été traitée
+  }
+
+  if (endSequenceTime > 0 && millis() - endSequenceTime >= delayAfterLastTile * 1000) {
+      gameState = END; // Retournez au menu après le délai spécifique
+      endSequenceTime = 0; // Réinitialisez pour la prochaine fois
+  }
+}
+
+void displayEndScreen() {
+  background(0);
+  image(backgroundImg, 0, 0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  if (health <= 0) {
+    text("Dommage, vous avez perdu !", width / 2, height / 2);
+  }
+  // Vérifie si le joueur a réussi à terminer la séquence sans épuiser sa santé
+  else if (sequenceIndex >= sequence.size() && tiles.isEmpty()) {
+    text("Félicitations, vous avez réussi !", width / 2, height / 2);
+  }
+  float linesY = height - lignes.length * 20 - 400;
+  for (int i = 0; i < lignes.length; i++) {
+     text(lignes[i], width / 2, linesY + i * 35); // Affiche chaque ligne avec un espacement de 20 pixels
+  }
+  
+}
+void displayScoreScreen(){
+  
+}
+void drawHUD() {
+  // Dessiner la barre
+  fill(0);
+  rect(0, rodHeight, 2000, 2);
+  noStroke();
+  
+  displayCombo();
+  drawHealthBar();
+  displayScore();
+}
+
+void displayPlayerButtons() {
+  for (PlayerButton button : playerButtons) {
+    fill(255);
+    rect(button.x, button.y, button.width, button.height);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    fill(0);
+    text(button.title, button.x + button.width/2, button.y + button.height/2);
+  }
+}
+
+void displaySequenceButtons() {
+  for (SequenceButton button : sequenceButtons) {
+    fill(255);
+    rect(button.x, button.y, button.width, button.height);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    fill(0);
+    text(button.title, button.x + button.width/2, button.y + button.height/2);
+  }
+}
+
+void drawHealthBar() {
+  fill(255, 0, 0); // Couleur rouge pour la barre de vie
+  float healthWidth = (width * 0.8) * (health / (float)maxHealth); // Calcul de la largeur de la barre de vie basé sur la santé actuelle
+  rect(width * 0.1, height - 50, healthWidth, 20); // Dessine la barre de vie en bas
+}
+
+void displayCombo() {
+  fill(0); // Couleur du texte en noir
+  textSize(32); // Taille du texte
+  textAlign(RIGHT, BOTTOM); // Aligner le texte à droite et en bas
+  text("Combo: " + combo, width - 10, height - 10); // Positionner le texte en bas à droite avec une marge
+}
+
+void displayScore() {
+  fill(0); // Couleur du texte
+  textSize(32); // Taille du texte
+  textAlign(LEFT, TOP); // Positionnement du texte
+  text("Score: " + score, 10, 10); // Affiche le score en haut à gauche de l'écran
+}
+
+void spawnTile(int column) {
+  tileHeight = height / 4.0;
+  tiles.add(new Tile(column * tileWidth, -tileHeight, tileWidth, tileHeight, speed));
+}
+
+void drawTiles() {
+  for (Tile tile : tiles) {
+    fill(0);
+    rect(tile.x, tile.y, tile.width, tile.height);
+  }
+}
+
+void keyPressed() {
+   for (int i = tiles.size() - 1; i >= 0; i--) {
+      Tile tile = tiles.get(i);
+      int column = int(tile.x / tileWidth);
+      // Vérifie si une touche est pressée et si la tuile est à la hauteur de la ligne de jugement
+      if ((key == 'd' && column == 0) || (key == 'f' && column == 1) || (key == 'j' && column == 2) || (key == 'k' && column == 3)) {
+          if (tile.y + tile.height > rodHeight && tile.y < rodHeight + tile.height) {
+              float relativePosition = (tile.y + tile.height) - rodHeight;
+
+              if (tile.height == height / 4.0) {
+                // Détermine le score basé sur la précision
+                int scoreColor;
+                int addScore;
+                if (relativePosition <= tile.height / 3) {
+                  lastScoreMessage = "Parfait!";
+                  scoreColor = color(0, 255, 0); // Vert
+                  addScore = 200;
+                } else if (relativePosition <= 2 * tile.height / 3) {
+                  lastScoreMessage = "Bon!";
+                  scoreColor = color(255, 165, 0); // Orange
+                  addScore = 100;
+                } else {
+                  lastScoreMessage = "Mauvais!";
+                  scoreColor = color(255, 0, 0); // Rouge
+                  addScore = 50;
+                }
+              
+                // Mise à jour de l'affichage du score pour la colonne correspondante
+                scoreDisplays[column].update(lastScoreMessage, scoreColor, 30);
+            
+                combo += 1; // Incrémente le combo pour chaque succès, quel que soit le score
+                score += addScore * combo;
+                health = min(health + 1, maxHealth); // Restaure la santé pour un succès
+                tiles.remove(tile); // Supprime la tuile après avoir été pressée correctement
+              } else {
+                 // Si aucune touche correspondante n'a été trouvée et une touche a été pressée
+                 combo = 0; // Réinitialisation du combo
+                 health -= 1; // Déduit un point de vie pour l'échec de correspondance
+                 if (health <= 0) {
+                   
+                     gameState = END;
+                 }
+              }
+          }
+      }
+    println("combo : " + combo);
+    }
+}
+
+void moveTiles() {
+  ArrayList<Tile> tilesToRemove = new ArrayList<Tile>();
+  for (Tile tile : tiles) {
+    tile.y += tile.speed;
+    if (tile.y >= height) {
+      combo = 0;
+      health -= 1;
+      tilesToRemove.add(tile);
+      if (health <= 0) {
+          
+          gameState = END;
+      }
+    }
+  }
+  tiles.removeAll(tilesToRemove);
+  if (!tilesToRemove.isEmpty()) {
+  }
+}
